@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import Footer from "@/components/Footer";
 import ShoppingCart from "@/components/ShoppingCart";
-import RatingStars from "@/components/RatingStars";
 import { useCart } from "@/contexts/CartContext";
 import { useState } from "react";
 
@@ -12,7 +11,6 @@ export default function BookStore() {
   const { addToCart, cart, setCartOpen } = useCart();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [bookRatings, setBookRatings] = useState({});
 
   // Sample book data
   const books = [
@@ -23,7 +21,7 @@ export default function BookStore() {
       price: 45.99,
       category: "Computer Science",
       image: "/book-icon.svg",
-      averageRating: 4.5,
+      rating: 4.5,
       totalRatings: 128,
     },
     {
@@ -33,6 +31,8 @@ export default function BookStore() {
       price: 52.5,
       category: "Mathematics",
       image: "/book-icon.svg",
+      rating: 4.0,
+      totalRatings: 95,
     },
     {
       id: 3,
@@ -41,6 +41,8 @@ export default function BookStore() {
       price: 39.99,
       category: "Economics",
       image: "/book-icon.svg",
+      rating: 4.2,
+      totalRatings: 156,
     },
     {
       id: 4,
@@ -49,6 +51,8 @@ export default function BookStore() {
       price: 48.75,
       category: "Physics",
       image: "/book-icon.svg",
+      rating: 4.7,
+      totalRatings: 87,
     },
     {
       id: 5,
@@ -57,6 +61,8 @@ export default function BookStore() {
       price: 55.25,
       category: "Chemistry",
       image: "/book-icon.svg",
+      rating: 4.3,
+      totalRatings: 112,
     },
     {
       id: 6,
@@ -65,6 +71,8 @@ export default function BookStore() {
       price: 42.99,
       category: "Psychology",
       image: "/book-icon.svg",
+      rating: 4.4,
+      totalRatings: 143,
     },
   ];
 
@@ -79,13 +87,9 @@ export default function BookStore() {
     "Psychology",
   ];
 
-  const handleRate = (bookId, rating) => {
-    setBookRatings((prev) => ({
-      ...prev,
-      [bookId]: rating,
-    }));
-    // Here you would typically make an API call to save the rating
-    alert(`Thank you for rating this book ${rating} stars!`);
+  // Function to render static stars
+  const renderStars = (rating) => {
+    return "★".repeat(rating) + "☆".repeat(5 - rating);
   };
 
   const filteredBooks = books.filter((book) => {
@@ -179,15 +183,6 @@ export default function BookStore() {
                   </span>
                 )}
               </button>
-
-              <select className="px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 text-black">
-                <option className="text-black">All Subjects</option>
-                <option className="text-black">Mathematics</option>
-                <option className="text-black">Science</option>
-                <option className="text-black">Literature</option>
-                <option className="text-black">History</option>
-                <option className="text-black">Computer Science</option>
-              </select>
             </div>
           </div>
         </div>
@@ -224,10 +219,9 @@ export default function BookStore() {
                   </h3>
                   <p className="text-gray-600 text-sm mb-2">{book.author}</p>
                   <div className="flex items-center justify-between mb-2">
-                    <RatingStars
-                      initialRating={bookRatings[book.id] || 0}
-                      onRate={(rating) => handleRate(book.id, rating)}
-                    />
+                    <span className="text-yellow-400 text-lg">
+                      {renderStars(Math.round(book.rating))}
+                    </span>
                     <span className="text-sm text-gray-500">
                       ({book.totalRatings})
                     </span>
