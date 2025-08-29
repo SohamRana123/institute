@@ -185,9 +185,9 @@ export default function Contact() {
               <p className="text-gray-600">
                 Admission requirements vary by program. Generally, undergraduate
                 programs require a high school diploma or equivalent, while
-                graduate programs require a bachelor's degree. Specific programs
-                may have additional requirements such as standardized test
-                scores or prerequisite courses.
+                graduate programs require a bachelor&#39;s degree. Specific
+                programs may have additional requirements such as standardized
+                test scores or prerequisite courses.
               </p>
             </div>
 

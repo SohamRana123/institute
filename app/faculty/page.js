@@ -186,8 +186,8 @@ export default function Faculty() {
           <h2 className="text-2xl font-bold mb-4">Join Our Faculty</h2>
           <p className="mb-6">
             We are always looking for talented educators and researchers to join
-            our team. If you are passionate about teaching and innovation, we'd
-            love to hear from you.
+            our team. If you are passionate about teaching and innovation,
+            we&#39;d love to hear from you.
           </p>
           <button className="px-6 py-3 bg-blue-600 text-white rounded-full font-bold hover:bg-blue-700 transition-colors">
             View Open Positions
