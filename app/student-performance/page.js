@@ -6,10 +6,12 @@ export default function StudentPerformance() {
   return (
     <>
       {/* Banner */}
-      <section className="bg-purple-600 text-white py-12">
+      <section className="bg-gradient-to-r from-violet-600 to-purple-700 py-16">
         <div className="container mx-auto text-center px-4">
-          <h2 className="text-4xl font-bold mb-2">Student Performance</h2>
-          <p className="text-purple-800 text-xl">
+          <h2 className="text-4xl font-bold mb-4 text-white">
+            Student Performance
+          </h2>
+          <p className="text-xl text-violet-100">
             Track your academic progress and performance metrics
           </p>
         </div>
@@ -19,17 +21,15 @@ export default function StudentPerformance() {
       <section className="py-16 bg-gray-50 flex justify-center items-center">
         <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
           <div className="flex justify-center mb-6">
-            <div className="bg-purple-600 p-4 rounded-lg">
+            <div className="bg-violet-600 p-4 rounded-lg">
               <span className="text-white text-2xl font-bold">VK</span>
             </div>
           </div>
-          <h3 className="text-2xl font-bold text-center mb-4">
-            <span className="text-purple-800">Student Performance Portal</span>
+          <h3 className="text-2xl font-bold text-center mb-4 text-gray-900">
+            Student Performance Portal
           </h3>
           <p className="text-gray-600 text-center mb-6">
-            <span className="text-purple-400">
-              Enter your student ID to view your academic performance
-            </span>
+            Enter your student ID to view your academic performance
           </p>
 
           <form>
@@ -43,7 +43,7 @@ export default function StudentPerformance() {
               <input
                 type="text"
                 id="student-id"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-500"
                 placeholder="Enter your student ID"
                 required
               />
@@ -51,7 +51,7 @@ export default function StudentPerformance() {
 
             <button
               type="submit"
-              className="w-full bg-purple-600 text-white py-3 px-4 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition duration-300 font-medium"
+              className="w-full bg-violet-600 text-white py-3 px-4 rounded-md hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 transition duration-300 font-medium"
             >
               View Performance
             </button>
@@ -62,37 +62,35 @@ export default function StudentPerformance() {
       {/* Features Section */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">
-            <span className="text-purple-800">
-              Performance Tracking Features
-            </span>
+          <h2 className="text-3xl font-bold text-center mb-12 text-violet-900">
+            Performance Tracking Features
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
-              <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="bg-violet-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Image
                   src="/chart-icon.svg"
                   alt="Grades Icon"
                   width={32}
                   height={32}
-                  className="text-purple-800"
+                  className="text-violet-600"
                 />
               </div>
-              <h3 className="text-xl font-bold mb-2 text-purple-800">
+              <h3 className="text-xl font-bold mb-2 text-violet-900">
                 Comprehensive Grades
               </h3>
-              <p className="text-purple-400">
+              <p className="text-violet-600">
                 View detailed breakdowns of grades across all subjects and
                 assignments
               </p>
             </div>
 
             <div className="text-center">
-              <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="bg-violet-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-8 w-8 text-purple-800"
+                  className="h-8 w-8 text-violet-600"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -105,20 +103,20 @@ export default function StudentPerformance() {
                   />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold mb-2 text-purple-800">
+              <h3 className="text-xl font-bold mb-2 text-violet-900">
                 Progress Analytics
               </h3>
-              <p className="text-purple-400">
+              <p className="text-violet-600">
                 Track improvement over time with visual analytics and progress
                 reports
               </p>
             </div>
 
             <div className="text-center">
-              <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="bg-violet-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-8 w-8 text-purple-800"
+                  className="h-8 w-8 text-violet-600"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -131,10 +129,10 @@ export default function StudentPerformance() {
                   />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold mb-2 text-purple-800">
+              <h3 className="text-xl font-bold mb-2 text-violet-900">
                 Teacher Feedback
               </h3>
-              <p className="text-purple-400">
+              <p className="text-violet-600">
                 Access detailed feedback from teachers on assignments and exams
               </p>
             </div>
