@@ -1,8 +1,19 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import Footer from "@/components/Footer";
+import ShoppingCart from "@/components/ShoppingCart";
+import RatingStars from "@/components/RatingStars";
+import { useCart } from "@/contexts/CartContext";
+import { useState } from "react";
 
 export default function BookStore() {
+  const { addToCart, cart, setCartOpen } = useCart();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [bookRatings, setBookRatings] = useState({});
+
   // Sample book data
   const books = [
     {
@@ -12,6 +23,8 @@ export default function BookStore() {
       price: 45.99,
       category: "Computer Science",
       image: "/book-icon.svg",
+      averageRating: 4.5,
+      totalRatings: 128,
     },
     {
       id: 2,
@@ -66,6 +79,24 @@ export default function BookStore() {
     "Psychology",
   ];
 
+  const handleRate = (bookId, rating) => {
+    setBookRatings((prev) => ({
+      ...prev,
+      [bookId]: rating,
+    }));
+    // Here you would typically make an API call to save the rating
+    alert(`Thank you for rating this book ${rating} stars!`);
+  };
+
+  const filteredBooks = books.filter((book) => {
+    const matchesSearch =
+      book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      book.author.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory =
+      selectedCategory === "All" || book.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
   return (
     <>
       {/* Banner */}
@@ -88,8 +119,10 @@ export default function BookStore() {
               <div className="relative">
                 <input
                   type="text"
-                  placeholder="Search"
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 text-black placeholder-black"
+                  placeholder="Search books or authors..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900 placeholder-gray-500"
                 />
                 <div className="absolute left-3 top-3.5 text-black">
                   <svg
@@ -111,13 +144,41 @@ export default function BookStore() {
             </div>
 
             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 w-full md:w-auto">
-              <select className="px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 text-black">
-                <option className="text-black">All Categories</option>
-                <option className="text-black">Textbooks</option>
-                <option className="text-black">Reference</option>
-                <option className="text-black">Study Guides</option>
-                <option className="text-black">Digital Resources</option>
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-900"
+              >
+                {categories.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
               </select>
+
+              <button
+                onClick={() => setCartOpen(true)}
+                className="relative p-2 text-gray-800 hover:text-orange-600 transition-colors"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+                  />
+                </svg>
+                {cart.length > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {cart.reduce((total, item) => total + item.quantity, 0)}
+                  </span>
+                )}
+              </button>
 
               <select className="px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 text-black">
                 <option className="text-black">All Subjects</option>
@@ -143,14 +204,14 @@ export default function BookStore() {
 
           {/* Books Grid */}
           <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {books.map((book) => (
+            {filteredBooks.map((book) => (
               <div
                 key={book.id}
                 className="bg-white rounded-lg shadow-sm hover:shadow-md transition duration-300"
               >
                 <div className="p-4 mb-2">
                   <Image
-                    src="/book-icon.svg"
+                    src={book.image}
                     alt={book.title}
                     width={200}
                     height={200}
@@ -158,31 +219,48 @@ export default function BookStore() {
                   />
                 </div>
                 <div className="p-4">
-                  <h3 className="text-lg font-medium mb-1 text-gray-800">
-                    <span className="text-black">{book.title}</span>
+                  <h3 className="text-lg font-medium mb-1 text-gray-900">
+                    {book.title}
                   </h3>
-                  <p className="text-black text-sm mb-2">{book.author}</p>
-                  <div className="flex items-center mb-2">
-                    <div className="flex text-yellow-400">
-                      <span>★★★★★</span>
-                    </div>
-                    <span className="text-black text-sm ml-1">
-                      ({(Math.random() * (5 - 4) + 4).toFixed(1)})
+                  <p className="text-gray-600 text-sm mb-2">{book.author}</p>
+                  <div className="flex items-center justify-between mb-2">
+                    <RatingStars
+                      initialRating={bookRatings[book.id] || 0}
+                      onRate={(rating) => handleRate(book.id, rating)}
+                    />
+                    <span className="text-sm text-gray-500">
+                      ({book.totalRatings})
                     </span>
                   </div>
                   <div className="flex items-center space-x-2 mb-3">
-                    <span className="text-lg font-bold text-black">
+                    <span className="text-lg font-bold text-gray-900">
                       ${book.price.toFixed(2)}
                     </span>
-                    <span className="text-black line-through text-sm">
+                    <span className="text-gray-500 line-through text-sm">
                       ${(book.price * 1.25).toFixed(2)}
                     </span>
                     <span className="text-green-600 text-xs">
                       Save ${(book.price * 0.25).toFixed(2)}
                     </span>
                   </div>
-                  <button className="w-full bg-orange-500 text-white py-2 rounded hover:bg-orange-600 transition duration-300">
-                    Add to Cart
+                  <button
+                    onClick={() => addToCart(book)}
+                    className="w-full bg-orange-500 text-white py-2 rounded hover:bg-orange-600 transition duration-300 flex items-center justify-center space-x-2"
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+                      />
+                    </svg>
+                    <span>Add to Cart</span>
                   </button>
                 </div>
               </div>
@@ -282,6 +360,9 @@ export default function BookStore() {
           </div>
         </div>
       </section>
+
+      {/* Shopping Cart Sidebar */}
+      <ShoppingCart />
 
       <Footer />
     </>
