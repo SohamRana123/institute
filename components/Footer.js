@@ -39,7 +39,10 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/student-portal" className="hover:text-blue-600">
+                <Link
+                  href="/student-performance"
+                  className="hover:text-blue-600"
+                >
                   Student Portal
                 </Link>
               </li>

@@ -25,7 +25,7 @@ export default function Home() {
               Apply Now
             </Link>
             <Link
-              href="/student-portal"
+              href="/student-performance"
               className="bg-white text-gray-800 border border-gray-300 px-8 py-3 rounded-md font-medium hover:bg-gray-100 transition duration-300 shadow-sm"
             >
               Student Portal
