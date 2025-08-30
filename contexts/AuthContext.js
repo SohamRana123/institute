@@ -30,8 +30,12 @@ export const AuthProvider = ({ children }) => {
   const login = async (credentials) => {
     try {
       const response = await authAPI.login(credentials);
-      setUser(response.user);
-      return { success: true, data: response };
+      if (response.token && response.user) {
+        setUser(response.user);
+        return { success: true, data: response };
+      } else {
+        throw new Error("Invalid response from server");
+      }
     } catch (error) {
       return { success: false, error: error.message };
     }
@@ -65,11 +69,6 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
-  // Check if user is authenticated
-  const isAuthenticated = () => {
-    return !!user;
-  };
-
   // Check if user has specific role
   const hasRole = (role) => {
     return user?.role === role;
@@ -82,7 +81,7 @@ export const AuthProvider = ({ children }) => {
     studentLogin,
     register,
     logout,
-    isAuthenticated,
+    isAuthenticated: !!user,
     hasRole,
   };
 

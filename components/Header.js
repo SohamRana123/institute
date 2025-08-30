@@ -58,7 +58,7 @@ export default function Header() {
               </Link>
             </li>
             {/* Authentication Links */}
-            {!isAuthenticated() ? (
+            {!isAuthenticated ? (
               <>
                 <li>
                   <Link

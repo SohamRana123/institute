@@ -171,14 +171,23 @@ export default function TeacherDashboard() {
   );
 
   useEffect(() => {
-    if (
-      !isAuthenticated ||
-      !(user?.role === "TEACHER" || user?.role === "ADMIN")
-    ) {
-      router.push("/teacher-login");
-      return;
-    }
-    fetchDashboardData();
+    const checkAuth = async () => {
+      if (
+        !isAuthenticated ||
+        !(user?.role === "TEACHER" || user?.role === "ADMIN")
+      ) {
+        router.push("/teacher-login");
+        return;
+      }
+      try {
+        await fetchDashboardData();
+      } catch (err) {
+        if (err.message.includes("Authentication required")) {
+          router.push("/teacher-login");
+        }
+      }
+    };
+    checkAuth();
   }, [isAuthenticated, user, router, fetchDashboardData]);
 
   if (
