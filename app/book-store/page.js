@@ -5,76 +5,19 @@ import Link from "next/link";
 import Footer from "@/components/Footer";
 import ShoppingCart from "@/components/ShoppingCart";
 import { useCart } from "@/contexts/CartContext";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { booksAPI, ordersAPI } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function BookStore() {
   const { addToCart, cart, setCartOpen } = useCart();
+  const { isAuthenticated } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
-
-  // Sample book data
-  const books = [
-    {
-      id: 1,
-      title: "Introduction to Computer Science",
-      author: "Dr. Alan Smith",
-      price: 45.99,
-      category: "Computer Science",
-      image: "/book-icon.svg",
-      rating: 4.5,
-      totalRatings: 128,
-    },
-    {
-      id: 2,
-      title: "Advanced Mathematics for Engineers",
-      author: "Prof. Sarah Johnson",
-      price: 52.5,
-      category: "Mathematics",
-      image: "/book-icon.svg",
-      rating: 4.0,
-      totalRatings: 95,
-    },
-    {
-      id: 3,
-      title: "Principles of Economics",
-      author: "Dr. Michael Brown",
-      price: 39.99,
-      category: "Economics",
-      image: "/book-icon.svg",
-      rating: 4.2,
-      totalRatings: 156,
-    },
-    {
-      id: 4,
-      title: "Modern Physics",
-      author: "Dr. Emily Chen",
-      price: 48.75,
-      category: "Physics",
-      image: "/book-icon.svg",
-      rating: 4.7,
-      totalRatings: 87,
-    },
-    {
-      id: 5,
-      title: "Organic Chemistry Fundamentals",
-      author: "Prof. Robert Wilson",
-      price: 55.25,
-      category: "Chemistry",
-      image: "/book-icon.svg",
-      rating: 4.3,
-      totalRatings: 112,
-    },
-    {
-      id: 6,
-      title: "Introduction to Psychology",
-      author: "Dr. Lisa Taylor",
-      price: 42.99,
-      category: "Psychology",
-      image: "/book-icon.svg",
-      rating: 4.4,
-      totalRatings: 143,
-    },
-  ];
+  const [books, setBooks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [orderLoading, setOrderLoading] = useState(false);
 
   // Available categories for filtering
   const categories = [
@@ -87,9 +30,27 @@ export default function BookStore() {
     "Psychology",
   ];
 
+  // Fetch books from API
+  useEffect(() => {
+    fetchBooks();
+  }, []);
+
+  const fetchBooks = async () => {
+    try {
+      setLoading(true);
+      const response = await booksAPI.getBooks();
+      setBooks(response.books || []);
+    } catch (error) {
+      setError("Failed to load books. Please try again.");
+      console.error("Error fetching books:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Function to render static stars
   const renderStars = (rating) => {
-    return "★".repeat(rating) + "☆".repeat(5 - rating);
+    return "★".repeat(Math.round(rating)) + "☆".repeat(5 - Math.round(rating));
   };
 
   const filteredBooks = books.filter((book) => {
@@ -100,6 +61,40 @@ export default function BookStore() {
       selectedCategory === "All" || book.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
+
+  const handleCheckout = async () => {
+    if (!isAuthenticated()) {
+      alert("Please login to place an order.");
+      return;
+    }
+
+    if (cart.length === 0) {
+      alert("Your cart is empty.");
+      return;
+    }
+
+    try {
+      setOrderLoading(true);
+      const orderItems = cart.map((item) => ({
+        bookId: item.id,
+        quantity: item.quantity,
+      }));
+
+      await ordersAPI.createOrder({ items: orderItems });
+
+      // Clear cart after successful order
+      setCart([]);
+      setCartOpen(false);
+      alert("Order placed successfully!");
+
+      // Refresh books to update stock
+      fetchBooks();
+    } catch (error) {
+      alert("Failed to place order: " + error.message);
+    } finally {
+      setOrderLoading(false);
+    }
+  };
 
   return (
     <>
@@ -194,72 +189,112 @@ export default function BookStore() {
           {/* Books Header */}
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-bold text-black">All Books</h2>
-            <p className="text-black">6 books found</p>
+            <p className="text-black">{filteredBooks.length} books found</p>
           </div>
 
+          {/* Loading State */}
+          {loading && (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto"></div>
+              <p className="mt-4 text-gray-600">Loading books...</p>
+            </div>
+          )}
+
+          {/* Error State */}
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+              {error}
+            </div>
+          )}
+
           {/* Books Grid */}
-          <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {filteredBooks.map((book) => (
-              <div
-                key={book.id}
-                className="bg-white rounded-lg shadow-sm hover:shadow-md transition duration-300"
-              >
-                <div className="p-4 mb-2">
-                  <Image
-                    src={book.image}
-                    alt={book.title}
-                    width={200}
-                    height={200}
-                    className="w-full"
-                  />
-                </div>
-                <div className="p-4">
-                  <h3 className="text-lg font-medium mb-1 text-gray-900">
-                    {book.title}
-                  </h3>
-                  <p className="text-gray-600 text-sm mb-2">{book.author}</p>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-yellow-400 text-lg">
-                      {renderStars(Math.round(book.rating))}
-                    </span>
-                    <span className="text-sm text-gray-500">
-                      ({book.totalRatings})
-                    </span>
+          {!loading && (
+            <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+              {filteredBooks.map((book) => (
+                <div
+                  key={book.id}
+                  className="bg-white rounded-lg shadow-sm hover:shadow-md transition duration-300"
+                >
+                  <div className="p-4 mb-2">
+                    <Image
+                      src={book.imageUrl || "/book-icon.svg"}
+                      alt={book.title}
+                      width={200}
+                      height={200}
+                      className="w-full"
+                    />
                   </div>
-                  <div className="flex items-center space-x-2 mb-3">
-                    <span className="text-lg font-bold text-gray-900">
-                      ${book.price.toFixed(2)}
-                    </span>
-                    <span className="text-gray-500 line-through text-sm">
-                      ${(book.price * 1.25).toFixed(2)}
-                    </span>
-                    <span className="text-green-600 text-xs">
-                      Save ${(book.price * 0.25).toFixed(2)}
-                    </span>
-                  </div>
-                  <button
-                    onClick={() => addToCart(book)}
-                    className="w-full bg-orange-500 text-white py-2 rounded hover:bg-orange-600 transition duration-300 flex items-center justify-center space-x-2"
-                  >
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                  <div className="p-4">
+                    <h3 className="text-lg font-medium mb-1 text-gray-900">
+                      {book.title}
+                    </h3>
+                    <p className="text-gray-600 text-sm mb-2">{book.author}</p>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-yellow-400 text-lg">
+                        {renderStars(4.5)}
+                      </span>
+                      <span className="text-sm text-gray-500">(128)</span>
+                    </div>
+                    <div className="flex items-center space-x-2 mb-3">
+                      <span className="text-lg font-bold text-gray-900">
+                        ${book.price.toFixed(2)}
+                      </span>
+                      <span className="text-gray-500 line-through text-sm">
+                        ${(book.price * 1.25).toFixed(2)}
+                      </span>
+                      <span className="text-green-600 text-xs">
+                        Save ${(book.price * 0.25).toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="mb-3">
+                      <span
+                        className={`text-xs px-2 py-1 rounded-full ${
+                          book.stock > 0
+                            ? "bg-green-100 text-green-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
+                      >
+                        {book.stock > 0
+                          ? `${book.stock} in stock`
+                          : "Out of stock"}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => addToCart(book)}
+                      disabled={book.stock === 0}
+                      className="w-full bg-orange-500 text-white py-2 rounded hover:bg-orange-600 transition duration-300 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-                      />
-                    </svg>
-                    <span>Add to Cart</span>
-                  </button>
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+                        />
+                      </svg>
+                      <span>
+                        {book.stock > 0 ? "Add to Cart" : "Out of Stock"}
+                      </span>
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
+
+          {/* No Books Found */}
+          {!loading && filteredBooks.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-gray-600">
+                No books found matching your criteria.
+              </p>
+            </div>
+          )}
         </div>
       </section>
 
@@ -356,7 +391,7 @@ export default function BookStore() {
       </section>
 
       {/* Shopping Cart Sidebar */}
-      <ShoppingCart />
+      <ShoppingCart onCheckout={handleCheckout} orderLoading={orderLoading} />
 
       <Footer />
     </>
