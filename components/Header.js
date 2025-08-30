@@ -57,19 +57,6 @@ export default function Header() {
                 Admissions
               </Link>
             </li>
-            <li>
-              <Link
-                href="/book-store"
-                className={`hover:text-blue-600 transition-colors duration-200 font-medium ${
-                  pathname === "/book-store"
-                    ? "text-blue-600 border-b-2 border-blue-600"
-                    : "text-gray-700"
-                }`}
-              >
-                Book Store
-              </Link>
-            </li>
-
             {/* Authentication Links */}
             {!isAuthenticated() ? (
               <>
@@ -95,6 +82,18 @@ export default function Header() {
                     }`}
                   >
                     Student Performance
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/book-store"
+                    className={`hover:text-blue-600 transition-colors duration-200 font-medium ${
+                      pathname === "/book-store"
+                        ? "text-blue-600 border-b-2 border-blue-600"
+                        : "text-gray-700"
+                    }`}
+                  >
+                    Book Store
                   </Link>
                 </li>
               </>
@@ -145,7 +144,7 @@ export default function Header() {
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         onClick={() => setShowDropdown(false)}
                       >
-                        My Performance
+                        Performance Dashboard
                       </Link>
                     )}
 

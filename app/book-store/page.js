@@ -10,7 +10,7 @@ import { booksAPI, ordersAPI } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function BookStore() {
-  const { addToCart, cart, setCartOpen } = useCart();
+  const { addToCart, cart, setCartOpen, setCart } = useCart();
   const { isAuthenticated } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");

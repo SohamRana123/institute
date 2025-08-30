@@ -76,6 +76,7 @@ export function CartProvider({ children }) {
         updateQuantity,
         clearCart,
         getCartTotal,
+        setCart,
       }}
     >
       {children}

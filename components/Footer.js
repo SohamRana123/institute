@@ -1,7 +1,11 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Footer() {
+  const { isAuthenticated, user } = useAuth();
   return (
     <footer
       className="bg-gray-100 py-12 mt-auto border-t border-gray-200"
@@ -47,7 +51,15 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/teacher-portal" className="hover:text-blue-600">
+                <Link
+                  href={
+                    isAuthenticated() &&
+                    (user?.role === "TEACHER" || user?.role === "ADMIN")
+                      ? "/teacher-dashboard"
+                      : "/teacher-login"
+                  }
+                  className="hover:text-blue-600"
+                >
                   Teacher Portal
                 </Link>
               </li>

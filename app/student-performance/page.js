@@ -1,145 +1,88 @@
 "use client";
 
-import Image from "next/image";
+import { useState } from "react";
 import Link from "next/link";
 import Footer from "@/components/Footer";
-import { useState, useEffect } from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { performanceAPI } from "@/lib/api";
 
 export default function StudentPerformance() {
-  const { user, isAuthenticated, login } = useAuth();
   const [showLogin, setShowLogin] = useState(true);
-  const [performanceData, setPerformanceData] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [studentId, setStudentId] = useState("");
 
-  const [loginForm, setLoginForm] = useState({
-    email: "",
-    password: "",
-  });
-
-  const handleLoginInputChange = (e) => {
-    const { name, value } = e.target;
-    setLoginForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+  // Test data based on the image
+  const testData = {
+    studentName: "John Doe",
+    rollNumber: "2024001",
+    class: "10th Grade",
+    subjects: [
+      { name: "Mathematics", maxMarks: 100, obtained: 85, grade: "A" },
+      { name: "Science", maxMarks: 100, obtained: 92, grade: "A+" },
+      { name: "English", maxMarks: 100, obtained: 78, grade: "B+" },
+      { name: "Social Studies", maxMarks: 100, obtained: 88, grade: "A" },
+      { name: "Hindi", maxMarks: 100, obtained: 82, grade: "A" },
+    ],
+    total: { maxMarks: 500, obtained: 425, percentage: 85 },
+    overallGrade: "A",
+    rank: "5th",
+    resultDate: "March 15, 2024",
   };
 
-  const handleLogin = async (e) => {
+  const handleLogin = (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError("");
-
-    try {
-      const result = await login(loginForm);
-      if (result.success) {
-        setShowLogin(false);
-        fetchPerformanceData();
-      } else {
-        setError(result.error);
-      }
-    } catch (error) {
-      setError("An unexpected error occurred. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchPerformanceData = async () => {
-    try {
-      setLoading(true);
-      const data = await performanceAPI.getPerformance();
-      setPerformanceData(data);
-    } catch (error) {
-      setError("Failed to load performance data. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (isAuthenticated() && user?.role === "STUDENT") {
+    if (studentId.trim()) {
       setShowLogin(false);
-      fetchPerformanceData();
     }
-  }, [user, isAuthenticated]);
+  };
 
-  const renderPerformanceCard = (performance) => (
-    <div key={performance.id} className="bg-white p-6 rounded-lg shadow-md">
-      <div className="flex justify-between items-start mb-4">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-800">
-            {performance.examType}
-          </h3>
-          <p className="text-gray-600 text-sm">
-            {new Date(performance.examDate).toLocaleDateString()}
-          </p>
-        </div>
-        <div className="text-right">
-          <div className="text-2xl font-bold text-blue-600">
-            {((performance.score / performance.maxScore) * 100).toFixed(1)}%
-          </div>
-          <div className="text-sm text-gray-500">
-            {performance.score}/{performance.maxScore}
-          </div>
-        </div>
-      </div>
-      {performance.remarks && (
-        <p className="text-gray-700 text-sm italic">"{performance.remarks}"</p>
-      )}
-    </div>
-  );
+  const getGradeColor = (grade) => {
+    switch (grade) {
+      case "A+":
+        return "bg-green-100 text-green-800";
+      case "A":
+        return "bg-green-100 text-green-800";
+      case "B+":
+        return "bg-blue-100 text-blue-800";
+      case "B":
+        return "bg-blue-100 text-blue-800";
+      case "C+":
+        return "bg-yellow-100 text-yellow-800";
+      case "C":
+        return "bg-yellow-100 text-yellow-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
 
-  const renderStatistics = (stats) => (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-      <div className="bg-blue-50 p-6 rounded-lg text-center">
-        <div className="text-3xl font-bold text-blue-600">
-          {stats.totalExams}
-        </div>
-        <div className="text-gray-600">Total Exams</div>
-      </div>
-      <div className="bg-green-50 p-6 rounded-lg text-center">
-        <div className="text-3xl font-bold text-green-600">
-          {stats.averageScore}%
-        </div>
-        <div className="text-gray-600">Average Score</div>
-      </div>
-      <div className="bg-purple-50 p-6 rounded-lg text-center">
-        <div className="text-3xl font-bold text-purple-600">
-          {stats.averageScore >= 90
-            ? "A"
-            : stats.averageScore >= 80
-            ? "B"
-            : stats.averageScore >= 70
-            ? "C"
-            : stats.averageScore >= 60
-            ? "D"
-            : "F"}
-        </div>
-        <div className="text-gray-600">Grade</div>
-      </div>
-    </div>
-  );
+  const getSummaryColor = (type) => {
+    switch (type) {
+      case "grade":
+        return "bg-green-50 border-green-200";
+      case "percentage":
+        return "bg-blue-50 border-blue-200";
+      case "rank":
+        return "bg-purple-50 border-purple-200";
+      default:
+        return "bg-gray-50 border-gray-200";
+    }
+  };
+
+  const getSummaryTextColor = (type) => {
+    switch (type) {
+      case "grade":
+        return "text-green-600";
+      case "percentage":
+        return "text-blue-600";
+      case "rank":
+        return "text-purple-600";
+      default:
+        return "text-gray-600";
+    }
+  };
 
   return (
     <>
-      {/* Banner */}
-      <section className="bg-gradient-to-r from-violet-600 to-purple-700 py-16">
-        <div className="container mx-auto text-center px-4">
-          <h2 className="text-4xl font-bold mb-4 text-white">
-            Student Performance
-          </h2>
-          <p className="text-xl text-violet-100">
-            Track your academic progress and performance metrics
-          </p>
-        </div>
-      </section>
-
       {/* Login Section */}
       {showLogin && (
-        <section className="py-16 bg-gray-50 flex justify-center items-center">
+        <section className="py-16 bg-gray-50 flex justify-center items-center min-h-screen">
           <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
             <div className="flex justify-center mb-6">
               <div className="bg-violet-600 p-4 rounded-lg">
@@ -147,68 +90,56 @@ export default function StudentPerformance() {
               </div>
             </div>
             <h3 className="text-2xl font-bold text-center mb-4 text-gray-900">
-              Student Performance Portal
+              Student Portal Login
             </h3>
             <p className="text-gray-600 text-center mb-6">
-              Login to view your academic performance
+              Enter your Student ID to access your performance report
             </p>
-
-            {error && (
-              <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-                {error}
-              </div>
-            )}
 
             <form onSubmit={handleLogin}>
               <div className="mb-6">
                 <label
-                  htmlFor="email"
+                  htmlFor="studentId"
                   className="block text-gray-700 text-sm font-medium mb-2"
                 >
-                  Email Address
+                  Student ID
                 </label>
                 <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={loginForm.email}
-                  onChange={handleLoginInputChange}
+                  type="text"
+                  id="studentId"
+                  value={studentId}
+                  onChange={(e) => setStudentId(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-500"
-                  placeholder="Enter your email"
+                  placeholder="Enter your Student ID"
                   required
                 />
-              </div>
-
-              <div className="mb-6">
-                <label
-                  htmlFor="password"
-                  className="block text-gray-700 text-sm font-medium mb-2"
-                >
-                  Password
-                </label>
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  value={loginForm.password}
-                  onChange={handleLoginInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-500"
-                  placeholder="Enter your password"
-                  required
-                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Your Student ID was provided to you upon admission
+                </p>
               </div>
 
               <button
                 type="submit"
-                disabled={loading}
-                className="w-full bg-violet-600 text-white py-3 px-4 rounded-md hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 transition duration-300 font-medium disabled:opacity-50"
+                className="w-full bg-violet-600 text-white py-3 px-4 rounded-md hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 transition duration-300 font-medium"
               >
-                {loading ? "Loading..." : "View Performance"}
+                Access Performance Report
               </button>
 
               <div className="mt-4 text-center">
                 <p className="text-xs text-gray-500">
-                  Test Account: alice.johnson@student.com / student123
+                  Test Student ID: Any value (for demo purposes)
+                </p>
+              </div>
+
+              <div className="mt-6 text-center">
+                <p className="text-sm text-gray-600">
+                  Don&apos;t have a Student ID?{" "}
+                  <Link
+                    href="/admissions"
+                    className="text-violet-600 hover:text-violet-800"
+                  >
+                    Apply for admission
+                  </Link>
                 </p>
               </div>
             </form>
@@ -216,101 +147,195 @@ export default function StudentPerformance() {
         </section>
       )}
 
-      {/* Performance Dashboard */}
+      {/* Performance Report */}
       {!showLogin && (
-        <section className="py-16 bg-gray-50">
-          <div className="container mx-auto px-4">
-            <div className="max-w-6xl mx-auto">
-              <div className="flex justify-between items-center mb-8">
-                <h2 className="text-3xl font-bold text-gray-800">
-                  Performance Dashboard
-                </h2>
-                <div className="text-right">
-                  <p className="text-gray-600">
-                    Welcome, {user?.student?.firstName || user?.email}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Student ID: {user?.student?.id}
-                  </p>
+        <div className="min-h-screen bg-gray-50">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-purple-600 to-purple-700 py-8">
+            <div className="container mx-auto px-4 text-center">
+              <h1 className="text-3xl font-bold text-white mb-2">
+                V.K. Institute
+              </h1>
+              <p className="text-purple-100 text-lg">
+                Academic Performance Report
+              </p>
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <div className="container mx-auto px-4 py-8">
+            <div className="max-w-4xl mx-auto">
+              {/* Student Information */}
+              <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    <p className="text-gray-500 text-sm font-medium">
+                      Student Name
+                    </p>
+                    <p className="text-gray-900 text-lg font-semibold">
+                      {testData.studentName}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 text-sm font-medium">
+                      Roll Number
+                    </p>
+                    <p className="text-gray-900 text-lg font-semibold">
+                      {testData.rollNumber}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 text-sm font-medium">Class</p>
+                    <p className="text-gray-900 text-lg font-semibold">
+                      {testData.class}
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              {loading ? (
-                <div className="text-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-600 mx-auto"></div>
-                  <p className="mt-4 text-gray-600">
-                    Loading performance data...
-                  </p>
-                </div>
-              ) : error ? (
-                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-                  {error}
-                </div>
-              ) : performanceData ? (
-                <>
-                  {/* Statistics */}
-                  {renderStatistics(performanceData.statistics)}
-
-                  {/* Performance Records */}
-                  <div className="bg-white rounded-lg shadow-md p-6">
-                    <h3 className="text-xl font-bold mb-6 text-gray-800">
-                      Recent Performance Records
-                    </h3>
-
-                    {performanceData.performances.length > 0 ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {performanceData.performances.map(
-                          renderPerformanceCard
-                        )}
-                      </div>
-                    ) : (
-                      <div className="text-center py-8">
-                        <p className="text-gray-600">
-                          No performance records found.
-                        </p>
-                        <p className="text-sm text-gray-500 mt-2">
-                          Your teachers will add performance records as you
-                          complete exams and assignments.
-                        </p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Exam Type Breakdown */}
-                  {performanceData.statistics.examTypeStats &&
-                    Object.keys(performanceData.statistics.examTypeStats)
-                      .length > 0 && (
-                      <div className="bg-white rounded-lg shadow-md p-6 mt-8">
-                        <h3 className="text-xl font-bold mb-6 text-gray-800">
-                          Performance by Exam Type
-                        </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                          {Object.entries(
-                            performanceData.statistics.examTypeStats
-                          ).map(([type, stats]) => (
-                            <div
-                              key={type}
-                              className="bg-gray-50 p-4 rounded-lg"
+              {/* Subject-wise Performance Table */}
+              <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+                <h2 className="text-xl font-bold text-gray-800 mb-6">
+                  Subject-wise Performance
+                </h2>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-gray-200">
+                        <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                          Subject
+                        </th>
+                        <th className="text-center py-3 px-4 font-semibold text-gray-700">
+                          Max Marks
+                        </th>
+                        <th className="text-center py-3 px-4 font-semibold text-gray-700">
+                          Obtained
+                        </th>
+                        <th className="text-center py-3 px-4 font-semibold text-gray-700">
+                          Grade
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {testData.subjects.map((subject, index) => (
+                        <tr
+                          key={index}
+                          className="border-b border-gray-100 hover:bg-gray-50"
+                        >
+                          <td className="py-3 px-4 font-medium text-gray-900">
+                            {subject.name}
+                          </td>
+                          <td className="py-3 px-4 text-center text-gray-600">
+                            {subject.maxMarks}
+                          </td>
+                          <td className="py-3 px-4 text-center font-semibold text-gray-900">
+                            {subject.obtained}
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <span
+                              className={`px-3 py-1 rounded-full text-sm font-medium ${getGradeColor(
+                                subject.grade
+                              )}`}
                             >
-                              <h4 className="font-semibold text-gray-800 mb-2">
-                                {type}
-                              </h4>
-                              <div className="text-2xl font-bold text-blue-600 mb-1">
-                                {stats.average.toFixed(1)}%
-                              </div>
-                              <div className="text-sm text-gray-600">
-                                {stats.count} exam{stats.count !== 1 ? "s" : ""}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                </>
-              ) : null}
+                              {subject.grade}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                      {/* Total Row */}
+                      <tr className="bg-purple-50 border-t-2 border-purple-200">
+                        <td className="py-3 px-4 font-bold text-gray-900">
+                          Total
+                        </td>
+                        <td className="py-3 px-4 text-center font-bold text-gray-900">
+                          {testData.total.maxMarks}
+                        </td>
+                        <td className="py-3 px-4 text-center font-bold text-gray-900">
+                          {testData.total.obtained}
+                        </td>
+                        <td className="py-3 px-4 text-center font-bold text-purple-600">
+                          {testData.total.percentage}%
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Summary Section */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div
+                  className={`bg-white rounded-lg shadow-md p-6 border-2 ${getSummaryColor(
+                    "grade"
+                  )}`}
+                >
+                  <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                    Overall Grade
+                  </h3>
+                  <div
+                    className={`text-4xl font-bold ${getSummaryTextColor(
+                      "grade"
+                    )}`}
+                  >
+                    {testData.overallGrade}
+                  </div>
+                </div>
+                <div
+                  className={`bg-white rounded-lg shadow-md p-6 border-2 ${getSummaryColor(
+                    "percentage"
+                  )}`}
+                >
+                  <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                    Percentage
+                  </h3>
+                  <div
+                    className={`text-4xl font-bold ${getSummaryTextColor(
+                      "percentage"
+                    )}`}
+                  >
+                    {testData.total.percentage}%
+                  </div>
+                </div>
+                <div
+                  className={`bg-white rounded-lg shadow-md p-6 border-2 ${getSummaryColor(
+                    "rank"
+                  )}`}
+                >
+                  <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                    Rank
+                  </h3>
+                  <div
+                    className={`text-4xl font-bold ${getSummaryTextColor(
+                      "rank"
+                    )}`}
+                  >
+                    {testData.rank}
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="flex flex-col md:flex-row justify-between items-center text-sm text-gray-600">
+                  <p>Result declared on: {testData.resultDate}</p>
+                  <button className="mt-2 md:mt-0 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition duration-300">
+                    Download PDF
+                  </button>
+                </div>
+              </div>
+
+              {/* Back to Login Button */}
+              <div className="mt-8 text-center">
+                <button
+                  onClick={() => setShowLogin(true)}
+                  className="px-6 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition duration-300"
+                >
+                  Back to Login
+                </button>
+              </div>
             </div>
           </div>
-        </section>
+        </div>
       )}
 
       <Footer />

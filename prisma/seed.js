@@ -248,7 +248,28 @@ async function main() {
     },
   });
 
+  // Get the actual student IDs for display
+  const students = await prisma.student.findMany({
+    select: { id: true, firstName: true, lastName: true },
+  });
+
   console.log("Database seeded successfully!");
+  console.log("\n=== Test Accounts ===");
+  console.log("Admin: admin@institute.com / admin123");
+  console.log(
+    "Teachers: john.doe@institute.com / teacher123, jane.smith@institute.com / teacher123"
+  );
+  console.log("\n=== Student Portal Access ===");
+  students.forEach((student, index) => {
+    console.log(
+      `Student ${index + 1}: ${student.id} (${student.firstName} ${
+        student.lastName
+      })`
+    );
+  });
+  console.log(
+    "\nUse the Student IDs above to login to the student performance portal"
+  );
 }
 
 main()

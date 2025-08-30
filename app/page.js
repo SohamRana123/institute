@@ -19,7 +19,7 @@ export default function Home() {
           </p>
           <div className="flex justify-center space-x-6">
             <Link
-              href="/apply"
+              href="/admissions"
               className="bg-blue-600 text-white px-8 py-3 rounded-md font-medium hover:bg-blue-700 transition duration-300 shadow-md"
             >
               Apply Now

@@ -26,10 +26,21 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  // Login function
+  // Login function (for teachers/admins)
   const login = async (credentials) => {
     try {
       const response = await authAPI.login(credentials);
+      setUser(response.user);
+      return { success: true, data: response };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  };
+
+  // Student login function
+  const studentLogin = async (studentId) => {
+    try {
+      const response = await authAPI.studentLogin(studentId);
       setUser(response.user);
       return { success: true, data: response };
     } catch (error) {
@@ -68,6 +79,7 @@ export const AuthProvider = ({ children }) => {
     user,
     loading,
     login,
+    studentLogin,
     register,
     logout,
     isAuthenticated,
