@@ -46,7 +46,7 @@ export async function POST(request) {
         email,
         password: hashedPassword,
         role: role || "STUDENT",
-        ...(role === "TEACHER"
+        ...(role === "TEACHER_ADMIN"
           ? {
               teacher: {
                 create: {
@@ -58,7 +58,8 @@ export async function POST(request) {
                 },
               },
             }
-          : {
+          : role === "STUDENT"
+          ? {
               student: {
                 create: {
                   firstName,
@@ -69,7 +70,8 @@ export async function POST(request) {
                   enrollmentDate: new Date(),
                 },
               },
-            }),
+            }
+          : {}),
       },
       include: {
         student: true,

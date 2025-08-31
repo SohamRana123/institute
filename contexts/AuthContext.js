@@ -70,8 +70,12 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Check if user has specific role
-  const hasRole = (role) => {
-    return user?.role === role;
+  const hasRole = (roles) => {
+    if (!user) return false;
+    if (typeof roles === "string") {
+      return user.role === roles;
+    }
+    return roles.includes(user.role);
   };
 
   const value = {

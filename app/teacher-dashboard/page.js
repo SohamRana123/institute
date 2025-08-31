@@ -172,10 +172,7 @@ export default function TeacherDashboard() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      if (
-        !isAuthenticated ||
-        !(user?.role === "TEACHER" || user?.role === "ADMIN")
-      ) {
+      if (!isAuthenticated || user?.role !== "ADMIN") {
         router.push("/teacher-login");
         return;
       }
@@ -190,10 +187,7 @@ export default function TeacherDashboard() {
     checkAuth();
   }, [isAuthenticated, user, router, fetchDashboardData]);
 
-  if (
-    !isAuthenticated ||
-    !(user?.role === "TEACHER" || user?.role === "ADMIN")
-  ) {
+  if (!isAuthenticated || user?.role !== "ADMIN") {
     return (
       <div className="min-h-screen flex items-center justify-center">
         Loading...
@@ -234,13 +228,9 @@ export default function TeacherDashboard() {
               { id: "performance", name: "Performance" },
               { id: "add-course", name: "Add Course" },
               { id: "add-performance", name: "Add Performance" },
-              ...(user?.role === "ADMIN"
-                ? [
-                    { id: "admissions", name: "Admission Applications" },
-                    { id: "book-store", name: "Book Store" },
-                    { id: "user-management", name: "User Management" },
-                  ]
-                : []),
+              { id: "admissions", name: "Admission Applications" },
+              { id: "book-store", name: "Book Store" },
+              { id: "user-management", name: "User Management" },
             ].map((tab) => (
               <button
                 key={tab.id}

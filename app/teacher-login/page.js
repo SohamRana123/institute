@@ -33,11 +33,9 @@ export default function TeacherLogin() {
     try {
       const result = await login(formData);
       if (result.success) {
-        // Redirect based on user role
-        if (result.data.user.role === "TEACHER") {
+        // Redirect to teacher dashboard for TEACHER_ADMIN role
+        if (result.data.user.role === "ADMIN") {
           router.push("/teacher-dashboard");
-        } else if (result.data.user.role === "ADMIN") {
-          router.push("/admin-dashboard");
         } else {
           router.push("/");
         }
@@ -160,7 +158,7 @@ export default function TeacherLogin() {
 
             <div className="mt-4 text-center">
               <p className="text-xs text-gray-500">
-                Test Account: john.doe@institute.com / teacher123
+                Test Account: teacher@institute.com / password123
               </p>
             </div>
           </form>
