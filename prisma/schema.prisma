@@ -132,14 +132,16 @@ model Book {
 }
 
 model Order {
-  id        String      @id @default(uuid())
-  studentId String
-  total     Float
-  status    OrderStatus @default(PENDING)
-  orderDate DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-  items     OrderItem[]
-  student   Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  id            String      @id @default(uuid())
+  studentId     String?
+  total         Float
+  status        OrderStatus @default(PENDING)
+  orderDate     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  customerEmail String
+  customerName  String
+  items         OrderItem[]
+  student       Student?    @relation(fields: [studentId], references: [id])
 
   @@map("orders")
 }
@@ -171,6 +173,85 @@ model Admission {
 
   @@index([email])
   @@map("admissions")
+}
+
+model TeacherRequest {
+  id            String               @id @default(uuid())
+  firstName     String
+  lastName      String
+  email         String               @unique
+  phone         String?
+  department    String
+  qualification String?
+  experience    String?
+  message       String?
+  status        TeacherRequestStatus @default(PENDING)
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+
+  @@index([email])
+  @@index([status])
+  @@map("teacher_requests")
+}
+
+model Curriculum {
+  id        String   @id @default(uuid())
+  courseId  String?
+  title     String
+  fileUrl   String
+  year      Int
+  semester  String
+  createdBy String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([courseId])
+  @@index([year, semester])
+  @@map("curriculum")
+}
+
+model Calendar {
+  id        String   @id @default(uuid())
+  title     String
+  fileUrl   String
+  startDate DateTime
+  endDate   DateTime
+  createdBy String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([startDate, endDate])
+  @@map("calendar")
+}
+
+model audit_logs {
+  id        String   @id
+  userId    String?
+  action    String
+  entity    String
+  entityId  String?
+  meta      Json?
+  createdAt DateTime @default(now())
+
+  @@index([action])
+  @@index([createdAt])
+  @@index([entity])
+  @@index([userId])
+}
+
+model library_files {
+  id        String   @id
+  title     String
+  author    String
+  fileUrl   String
+  mime      String
+  size      Int
+  createdBy String
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+
+  @@index([author])
+  @@index([title])
 }
 
 enum UserRole {
@@ -231,4 +312,10 @@ enum AdmissionStatus {
   APPROVED
   REJECTED
   WAITLISTED
+}
+
+enum TeacherRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }

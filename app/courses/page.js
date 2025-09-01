@@ -1,93 +1,52 @@
+"use client";
+
 import Link from "next/link";
+import { useState, useEffect } from "react";
 
 export default function Courses() {
-  // Sample course data
-  const courses = [
-    {
-      id: 1,
-      title: "Bachelor of Technology in Computer Science",
-      duration: "4 years",
-      level: "Undergraduate",
-      description:
-        "A comprehensive program covering programming, algorithms, data structures, software engineering, artificial intelligence, and more.",
-      highlights: [
-        "Modern curriculum",
-        "Industry partnerships",
-        "Hands-on projects",
-        "Internship opportunities",
-      ],
-    },
-    {
-      id: 2,
-      title: "Bachelor of Technology in Electronics",
-      duration: "4 years",
-      level: "Undergraduate",
-      description:
-        "Study electronic systems, circuit design, signal processing, microprocessors, and communication systems.",
-      highlights: [
-        "Well-equipped labs",
-        "Industry-relevant skills",
-        "Expert faculty",
-        "Research opportunities",
-      ],
-    },
-    {
-      id: 3,
-      title: "Master of Technology in Data Science",
-      duration: "2 years",
-      level: "Postgraduate",
-      description:
-        "Advanced study of data analytics, machine learning, big data technologies, and statistical methods.",
-      highlights: [
-        "Cutting-edge curriculum",
-        "Research focus",
-        "Industry collaborations",
-        "Capstone projects",
-      ],
-    },
-    {
-      id: 4,
-      title: "Master of Technology in Artificial Intelligence",
-      duration: "2 years",
-      level: "Postgraduate",
-      description:
-        "Specialized program covering machine learning, neural networks, computer vision, natural language processing, and robotics.",
-      highlights: [
-        "State-of-the-art AI labs",
-        "Research opportunities",
-        "Industry partnerships",
-        "Expert mentorship",
-      ],
-    },
-    {
-      id: 5,
-      title: "PhD in Computer Science and Engineering",
-      duration: "3-5 years",
-      level: "Doctoral",
-      description:
-        "Research-focused program allowing students to contribute to advancing knowledge in specialized areas of computer science.",
-      highlights: [
-        "Research funding",
-        "Publication support",
-        "Conference opportunities",
-        "Industry collaborations",
-      ],
-    },
-    {
-      id: 6,
-      title: "Certificate in Web Development",
-      duration: "6 months",
-      level: "Certificate",
-      description:
-        "Practical training in HTML, CSS, JavaScript, and modern web frameworks to build responsive and dynamic websites.",
-      highlights: [
-        "Hands-on projects",
-        "Portfolio development",
-        "Industry mentors",
-        "Job placement assistance",
-      ],
-    },
-  ];
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [filteredCourses, setFilteredCourses] = useState([]);
+  const [activeFilter, setActiveFilter] = useState("all");
+
+  useEffect(() => {
+    fetchCourses();
+  }, []);
+
+  const fetchCourses = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch("/api/courses");
+      const data = await response.json();
+      
+      if (data.ok) {
+        setCourses(data.data.courses);
+        setFilteredCourses(data.data.courses);
+      } else {
+        setError(data.message || "Failed to fetch courses");
+      }
+    } catch (error) {
+      console.error("Error fetching courses:", error);
+      setError("Failed to fetch courses");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filterCourses = (filter) => {
+    setActiveFilter(filter);
+    
+    if (filter === "all") {
+      setFilteredCourses(courses);
+    } else {
+      const filtered = courses.filter(course => 
+        course.semester?.toLowerCase().includes(filter.toLowerCase()) ||
+        course.status?.toLowerCase().includes(filter.toLowerCase())
+      );
+      setFilteredCourses(filtered);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -139,55 +98,120 @@ export default function Courses() {
 
         {/* Course Filters */}
         <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">Filter by Level</h2>
+          <h2 className="text-xl font-semibold mb-4">Filter by Semester</h2>
           <div className="flex flex-wrap gap-2">
-            <button className="px-4 py-2 bg-blue-100 text-blue-800 rounded-full hover:bg-blue-200">
+            <button 
+              onClick={() => filterCourses("all")}
+              className={`px-4 py-2 rounded-full hover:bg-blue-200 ${
+                activeFilter === "all" 
+                  ? "bg-blue-100 text-blue-800" 
+                  : "bg-gray-100 text-gray-800"
+              }`}
+            >
               All
             </button>
-            <button className="px-4 py-2 bg-gray-100 text-gray-800 rounded-full hover:bg-gray-200">
-              Undergraduate
+            <button 
+              onClick={() => filterCourses("fall")}
+              className={`px-4 py-2 rounded-full hover:bg-blue-200 ${
+                activeFilter === "fall" 
+                  ? "bg-blue-100 text-blue-800" 
+                  : "bg-gray-100 text-gray-800"
+              }`}
+            >
+              Fall
             </button>
-            <button className="px-4 py-2 bg-gray-100 text-gray-800 rounded-full hover:bg-gray-200">
-              Postgraduate
+            <button 
+              onClick={() => filterCourses("spring")}
+              className={`px-4 py-2 rounded-full hover:bg-blue-200 ${
+                activeFilter === "spring" 
+                  ? "bg-blue-100 text-blue-800" 
+                  : "bg-gray-100 text-gray-800"
+              }`}
+            >
+              Spring
             </button>
-            <button className="px-4 py-2 bg-gray-100 text-gray-800 rounded-full hover:bg-gray-200">
-              Doctoral
-            </button>
-            <button className="px-4 py-2 bg-gray-100 text-gray-800 rounded-full hover:bg-gray-200">
-              Certificate
+            <button 
+              onClick={() => filterCourses("summer")}
+              className={`px-4 py-2 rounded-full hover:bg-blue-200 ${
+                activeFilter === "summer" 
+                  ? "bg-blue-100 text-blue-800" 
+                  : "bg-gray-100 text-gray-800"
+              }`}
+            >
+              Summer
             </button>
           </div>
         </div>
 
-        {/* Course Listings */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {courses.map((course) => (
-            <div
-              key={course.id}
-              className="border rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow"
-            >
-              <div className="bg-blue-50 p-4 border-b">
-                <span className="inline-block px-3 py-1 text-xs font-semibold bg-blue-100 text-blue-800 rounded-full mb-2">
-                  {course.level}
-                </span>
-                <h3 className="text-xl font-bold">{course.title}</h3>
-                <p className="text-gray-600">Duration: {course.duration}</p>
+        {/* Loading State */}
+        {loading && (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading courses...</p>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <div className="mb-6 bg-red-50 border border-red-200 rounded-md p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
               </div>
-              <div className="p-4">
-                <p className="mb-4">{course.description}</p>
-                <h4 className="font-semibold mb-2">Highlights:</h4>
-                <ul className="list-disc pl-5 mb-4">
-                  {course.highlights.map((highlight, index) => (
-                    <li key={index}>{highlight}</li>
-                  ))}
-                </ul>
-                <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
-                  Learn More
-                </button>
+              <div className="ml-3">
+                <p className="text-sm text-red-800">{error}</p>
               </div>
             </div>
-          ))}
-        </div>
+          </div>
+        )}
+
+        {/* Course Listings */}
+        {!loading && !error && (
+          <>
+            {filteredCourses.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-500">No courses found.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {filteredCourses.map((course) => (
+                  <div
+                    key={course.id}
+                    className="border rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow"
+                  >
+                    <div className="bg-blue-50 p-4 border-b">
+                      <span className="inline-block px-3 py-1 text-xs font-semibold bg-blue-100 text-blue-800 rounded-full mb-2">
+                        {course.semester} {course.year}
+                      </span>
+                      <h3 className="text-xl font-bold">{course.name}</h3>
+                      <p className="text-gray-600">Code: {course.code} | Credits: {course.credits}</p>
+                      {course.teacher && (
+                        <p className="text-sm text-gray-500">Teacher: {course.teacher.firstName} {course.teacher.lastName}</p>
+                      )}
+                    </div>
+                    <div className="p-4">
+                      <p className="mb-4">{course.description || "No description available"}</p>
+                      <div className="flex justify-between items-center">
+                        <span className={`inline-block px-2 py-1 text-xs font-semibold rounded-full ${
+                          course.status === "ACTIVE" 
+                            ? "bg-green-100 text-green-800" 
+                            : "bg-gray-100 text-gray-800"
+                        }`}>
+                          {course.status}
+                        </span>
+                        <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
+                          Learn More
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
 
         {/* Application CTA */}
         <div className="mt-12 bg-blue-50 p-8 rounded-lg text-center">

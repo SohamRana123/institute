@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { getTokenFromHeader, verifyToken } from "@/lib/auth";
+import { requireTeacherAdmin } from "@/lib/auth";
 
 export async function GET(request) {
   try {
@@ -57,11 +57,15 @@ export async function GET(request) {
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json({ courses });
+    return NextResponse.json({
+      ok: true,
+      message: "Courses retrieved successfully",
+      data: { courses },
+    });
   } catch (error) {
     console.error("Get courses error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { ok: false, message: "Internal server error" },
       { status: 500 }
     );
   }
@@ -69,23 +73,13 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    const token = getTokenFromHeader(request);
-    if (!token) {
-      return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 }
-      );
-    }
-
-    const decoded = verifyToken(token);
-    if (!decoded) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
-
+    // Check authentication and authorization
+    const user = requireTeacherAdmin(request);
+    
     // Only teachers can create courses
-    if (decoded.role !== "TEACHER") {
+    if (user.role !== "TEACHER" && user.role !== "ADMIN") {
       return NextResponse.json(
-        { error: "Only teachers can create courses" },
+        { ok: false, message: "Only teachers and admins can create courses" },
         { status: 403 }
       );
     }
@@ -96,19 +90,19 @@ export async function POST(request) {
     // Validate required fields
     if (!name || !code || !credits || !semester || !year) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { ok: false, message: "Missing required fields" },
         { status: 400 }
       );
     }
 
     // Get teacher ID
     const teacher = await prisma.teacher.findUnique({
-      where: { userId: decoded.userId },
+      where: { userId: user.id },
     });
 
     if (!teacher) {
       return NextResponse.json(
-        { error: "Teacher profile not found" },
+        { ok: false, message: "Teacher profile not found" },
         { status: 404 }
       );
     }
@@ -120,7 +114,7 @@ export async function POST(request) {
 
     if (existingCourse) {
       return NextResponse.json(
-        { error: "Course with this code already exists" },
+        { ok: false, message: "Course with this code already exists" },
         { status: 400 }
       );
     }
@@ -151,13 +145,14 @@ export async function POST(request) {
     });
 
     return NextResponse.json({
+      ok: true,
       message: "Course created successfully",
-      course,
+      data: { course },
     });
   } catch (error) {
     console.error("Create course error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { ok: false, message: "Internal server error" },
       { status: 500 }
     );
   }

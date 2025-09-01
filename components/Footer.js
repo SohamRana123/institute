@@ -55,7 +55,7 @@ export default function Footer() {
                 <Link
                   href={
                     isAuthenticated &&
-                    (user?.role === "TEACHER" || user?.role === "ADMIN")
+                    (user?.role === "TEACHER" || user?.role === "TEACHER_ADMIN")
                       ? "/teacher-dashboard"
                       : "/teacher-login"
                   }

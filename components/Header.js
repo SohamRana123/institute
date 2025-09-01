@@ -4,17 +4,21 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { useState } from "react";
+import { useState, useCallback, memo } from "react";
 
-export default function Header() {
+const Header = memo(() => {
   const pathname = usePathname();
   const { user, isAuthenticated, logout } = useAuth();
   const [showDropdown, setShowDropdown] = useState(false);
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     logout();
     setShowDropdown(false);
-  };
+  }, [logout]);
+
+  const toggleDropdown = useCallback(() => {
+    setShowDropdown((prev) => !prev);
+  }, []);
 
   return (
     <header className="bg-white shadow-md sticky top-0 z-50">
@@ -45,18 +49,33 @@ export default function Header() {
                 Home
               </Link>
             </li>
-            <li>
-              <Link
-                href="/admissions"
-                className={`hover:text-blue-600 transition-colors duration-200 font-medium ${
-                  pathname === "/admissions"
-                    ? "text-blue-600 border-b-2 border-blue-600"
-                    : "text-gray-700"
-                }`}
-              >
-                Admissions
-              </Link>
-            </li>
+            {!isAuthenticated ? (
+              <li>
+                <Link
+                  href="/admissions"
+                  className={`hover:text-blue-600 transition-colors duration-200 font-medium ${
+                    pathname === "/admissions"
+                      ? "text-blue-600 border-b-2 border-blue-600"
+                      : "text-gray-700"
+                  }`}
+                >
+                  Admissions
+                </Link>
+              </li>
+            ) : (
+              <li>
+                <Link
+                  href="/teacher-dashboard"
+                  className={`hover:text-blue-600 transition-colors duration-200 font-medium ${
+                    pathname === "/teacher-dashboard"
+                      ? "text-blue-600 border-b-2 border-blue-600"
+                      : "text-gray-700"
+                  }`}
+                >
+                  Teacher Dashboard
+                </Link>
+              </li>
+            )}
             {/* Authentication Links */}
             {!isAuthenticated ? (
               <>
@@ -100,7 +119,7 @@ export default function Header() {
             ) : (
               <li className="relative">
                 <button
-                  onClick={() => setShowDropdown(!showDropdown)}
+                  onClick={toggleDropdown}
                   className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors duration-200 font-medium"
                 >
                   <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
@@ -148,23 +167,14 @@ export default function Header() {
                       </Link>
                     )}
 
-                    {user?.role === "TEACHER" && (
+                    {(user?.role === "TEACHER" ||
+                      user?.role === "TEACHER_ADMIN") && (
                       <Link
                         href="/teacher-dashboard"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         onClick={() => setShowDropdown(false)}
                       >
                         Teacher Dashboard
-                      </Link>
-                    )}
-
-                    {user?.role === "ADMIN" && (
-                      <Link
-                        href="/admin-dashboard"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        onClick={() => setShowDropdown(false)}
-                      >
-                        Admin Dashboard
                       </Link>
                     )}
 
@@ -191,4 +201,8 @@ export default function Header() {
       )}
     </header>
   );
-}
+});
+
+Header.displayName = "Header";
+
+export default Header;

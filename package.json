@@ -3,29 +3,41 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "prisma generate && next build --turbopack",
+    "dev": "next dev",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
     "db:seed": "node prisma/seed.js",
     "postinstall": "prisma generate",
-    "update-roles": "node scripts/update-roles.js"
+    "update-roles": "node scripts/update-roles.js",
+    "test": "jest",
+    "test:setup": "node scripts/setup-test-db.js",
+    "test:e2e": "npm run test:setup && node tests/run-all-tests.js",
+    "test:workflow": "npm run test:setup && jest tests/workflows/"
   },
   "dependencies": {
     "@prisma/client": "^6.15.0",
+    "@swc/helpers": "^0.5.17",
     "bcryptjs": "^3.0.2",
     "jose": "^5.2.3",
     "jsonwebtoken": "^9.0.2",
     "next": "15.5.2",
     "prisma": "^6.15.0",
     "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "zod": "^4.1.5"
   },
   "devDependencies": {
+    "@babel/preset-env": "^7.28.3",
+    "@babel/preset-react": "^7.27.1",
     "@eslint/eslintrc": "^3",
-    "@tailwindcss/postcss": "^4",
+    "autoprefixer": "^10.4.16",
+    "babel-jest": "^30.1.2",
     "eslint": "^9",
     "eslint-config-next": "15.5.2",
-    "tailwindcss": "^4"
+    "jest": "^30.1.2",
+    "node-fetch": "^2.7.0",
+    "postcss": "^8.4.31",
+    "tailwindcss": "^3.3.5"
   }
 }

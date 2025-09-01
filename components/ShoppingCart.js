@@ -2,8 +2,9 @@
 
 import Image from "next/image";
 import { useCart } from "@/contexts/CartContext";
+import React, { useMemo } from "react";
 
-export default function ShoppingCart({ onCheckout, orderLoading = false }) {
+const ShoppingCart = React.memo(({ onCheckout, orderLoading = false }) => {
   const {
     cart,
     cartOpen,
@@ -12,6 +13,12 @@ export default function ShoppingCart({ onCheckout, orderLoading = false }) {
     updateQuantity,
     getCartTotal,
   } = useCart();
+
+  // Memoize cart total to prevent unnecessary recalculations
+  const cartTotal = useMemo(() => getCartTotal(), [getCartTotal]);
+
+  // Memoize cart items to prevent unnecessary re-renders
+  const cartItems = useMemo(() => cart, [cart]);
 
   return (
     <div
@@ -59,11 +66,11 @@ export default function ShoppingCart({ onCheckout, orderLoading = false }) {
           </div>
 
           <div className="flex-1 overflow-y-auto p-4">
-            {cart.length === 0 ? (
+            {cartItems.length === 0 ? (
               <p className="text-gray-500 text-center">Your cart is empty</p>
             ) : (
               <div className="space-y-4">
-                {cart.map((item) => (
+                {cartItems.map((item) => (
                   <div key={item.id} className="flex space-x-4 border-b pb-4">
                     <div className="w-20 h-20 bg-gray-100 rounded-md overflow-hidden">
                       <Image
@@ -131,13 +138,13 @@ export default function ShoppingCart({ onCheckout, orderLoading = false }) {
             <div className="flex justify-between items-center mb-4">
               <span className="text-lg font-medium text-gray-900">Total</span>
               <span className="text-lg font-bold text-orange-600">
-                ${getCartTotal().toFixed(2)}
+                ${cartTotal.toFixed(2)}
               </span>
             </div>
             <button
               className="w-full bg-orange-500 text-white py-3 px-4 rounded-lg hover:bg-orange-600 transform hover:scale-[1.02] transition-all duration-200 font-medium shadow-md hover:shadow-lg flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={onCheckout}
-              disabled={orderLoading || cart.length === 0}
+              disabled={orderLoading || cartItems.length === 0}
             >
               {orderLoading ? (
                 <>
@@ -159,7 +166,7 @@ export default function ShoppingCart({ onCheckout, orderLoading = false }) {
                       d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"
                     />
                   </svg>
-                  <span>Proceed to Checkout</span>
+                  <span>Checkout</span>
                 </>
               )}
             </button>
@@ -168,4 +175,8 @@ export default function ShoppingCart({ onCheckout, orderLoading = false }) {
       </div>
     </div>
   );
-}
+});
+
+ShoppingCart.displayName = "ShoppingCart";
+
+export default ShoppingCart;

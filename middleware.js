@@ -1,45 +1,58 @@
-import { NextResponse } from 'next/server';
-import { jwtVerify } from 'jose';
-
-const PUBLIC_PATHS = [
-  '/api/auth/login',
-  '/api/auth/register',
-  '/api/auth/student-login',
-];
+import { NextResponse } from "next/server";
+import { verifyJwt } from "@/lib/auth";
 
 export async function middleware(request) {
-  const path = request.nextUrl.pathname;
+  const { pathname } = request.nextUrl;
 
-  // Allow public paths without authentication
-  if (PUBLIC_PATHS.includes(path)) {
+  // Check if the route needs protection
+  const isProtectedRoute =
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/teacher") ||
+    pathname.startsWith("/teacher-dashboard");
+
+  if (!isProtectedRoute) {
     return NextResponse.next();
   }
-
-  // Get the token from the Authorization header
-  const authHeader = request.headers.get('authorization');
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return NextResponse.json(
-      { error: 'Authentication required' },
-      { status: 401 }
-    );
-  }
-
-  const token = authHeader.split(' ')[1];
 
   try {
-    // Verify the JWT token
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-    await jwtVerify(token, secret);
-    
+    // Get token from cookie
+    const token = request.cookies.get("authToken")?.value;
+
+    if (!token) {
+      console.log("No auth token found, redirecting to login");
+      return NextResponse.redirect(new URL("/teacher-login", request.url));
+    }
+
+    // Verify JWT token
+    const decoded = verifyJwt(token);
+
+    if (!decoded) {
+      console.log("Invalid token, redirecting to login");
+      return NextResponse.redirect(new URL("/teacher-login", request.url));
+    }
+
+    // Check if user has required role (TEACHER or ADMIN)
+    if (decoded.role !== "TEACHER" && decoded.role !== "ADMIN") {
+      console.log("Insufficient permissions, redirecting to login");
+      return NextResponse.redirect(new URL("/teacher-login", request.url));
+    }
+
+    // User is authenticated and authorized, proceed
+    console.log(
+      `User ${decoded.userId} (${decoded.role}) accessing ${pathname}`
+    );
     return NextResponse.next();
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Invalid or expired token' },
-      { status: 401 }
-    );
+    console.error("Middleware error:", error);
+    return NextResponse.redirect(new URL("/teacher-login", request.url));
   }
 }
 
 export const config = {
-  matcher: '/api/:path*',
+  matcher: [
+    "/admin/:path*",
+    "/teacher/:path*",
+    "/teacher-dashboard/:path*",
+    "/teacher-dashboard",
+  ],
 };

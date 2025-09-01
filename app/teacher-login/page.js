@@ -31,20 +31,54 @@ export default function TeacherLogin() {
     setError("");
 
     try {
+      console.log("Teacher login - submitting form data:", formData.email);
       const result = await login(formData);
-      if (result.success) {
-        // Redirect to teacher dashboard for TEACHER_ADMIN role
-        if (result.data.user.role === "ADMIN") {
+      console.log("Teacher login - login result:", result);
+
+      if (result.success === false || result.error) {
+        console.log("Teacher login - login failed:", result.error);
+        setError(result.error || "Invalid credentials");
+        setLoading(false);
+        return;
+      }
+
+      console.log(
+        "Teacher login - login successful, user role:",
+        result.data.user.role
+      );
+      // Redirect to teacher dashboard for allowed roles
+      const allowedRoles = ["ADMIN", "TEACHER"];
+      if (allowedRoles.includes(result.data.user.role)) {
+        console.log("Teacher login - redirecting to dashboard");
+        // Add a small delay to ensure token is properly stored
+        setTimeout(() => {
+          // Check if we have a stored redirect to prevent loops
+          const lastRedirect =
+            typeof window !== "undefined"
+              ? sessionStorage.getItem("lastRedirect")
+              : null;
+          console.log("Last redirect was:", lastRedirect);
+
+          // Clear the stored redirect
+          if (typeof window !== "undefined") {
+            sessionStorage.removeItem("lastRedirect");
+          }
+
+          // If the last redirect was from the dashboard, don't redirect back to it
+          if (lastRedirect === "/teacher-dashboard") {
+            console.log("Preventing redirect loop to dashboard");
+            return;
+          }
+
           router.push("/teacher-dashboard");
-        } else {
-          router.push("/");
-        }
+        }, 100);
       } else {
-        setError(result.error);
+        console.log("Teacher login - redirecting to home");
+        router.push("/");
       }
     } catch (error) {
+      console.error("Login error:", error);
       setError("An unexpected error occurred. Please try again.");
-    } finally {
       setLoading(false);
     }
   };
@@ -65,6 +99,11 @@ export default function TeacherLogin() {
           <p className="text-gray-600 text-center mb-6">
             <span className="text-black">Access your teaching dashboard</span>
           </p>
+          <div className="mb-4 p-3 bg-blue-100 border border-blue-400 text-blue-700 rounded">
+            <p className="text-sm">Demo credentials:</p>
+            <p className="text-sm">Email: teacher@institute.com</p>
+            <p className="text-sm">Password: password123</p>
+          </div>
 
           {error && (
             <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
@@ -148,17 +187,17 @@ export default function TeacherLogin() {
               <p className="text-sm text-gray-600">
                 Don&#39;t have an account?{" "}
                 <Link
-                  href="/register"
+                  href="/teacher-register"
                   className="text-blue-600 hover:text-blue-800"
                 >
-                  Register here
+                  Apply to become a teacher
                 </Link>
               </p>
             </div>
 
             <div className="mt-4 text-center">
               <p className="text-xs text-gray-500">
-                Test Account: teacher@institute.com / password123
+                Test Account: teacher@institute.com / admin123
               </p>
             </div>
           </form>

@@ -6,17 +6,17 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("Seeding database...");
 
-  // Create admin user
-  const adminPassword = await bcrypt.hash("password123", 12);
-  const adminUser = await prisma.user.create({
+  // Create teacher admin user
+  const teacherAdminPassword = await bcrypt.hash("password123", 12);
+  const teacherAdminUser = await prisma.user.create({
     data: {
       email: "teacher@institute.com",
-      password: adminPassword,
+      password: teacherAdminPassword,
       role: "ADMIN",
       teacher: {
         create: {
-          firstName: "Admin",
-          lastName: "Teacher",
+          firstName: "Teacher",
+          lastName: "Admin",
           phone: "+1234567890",
           department: "Computer Science",
           hireDate: new Date("2020-01-15"),
@@ -264,7 +264,7 @@ async function main() {
 
   console.log("Database seeded successfully!");
   console.log("\n=== Test Accounts ===");
-  console.log("Admin: admin@institute.com / admin123");
+  console.log("Teacher Admin: teacher@institute.com / password123");
   console.log(
     "Teachers: john.doe@institute.com / teacher123, jane.smith@institute.com / teacher123"
   );

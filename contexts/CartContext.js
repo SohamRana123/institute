@@ -1,6 +1,13 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+} from "react";
 
 const CartContext = createContext();
 
@@ -31,7 +38,14 @@ export function CartProvider({ children }) {
     }
   }, [cart]);
 
-  const addToCart = (book) => {
+  const addToCart = useCallback((book) => {
+    // Ensure the book has the correct image property
+    const bookWithImage = {
+      ...book,
+      image: book.imageUrl || book.image || "/book-icon.svg", // Use imageUrl if available, fallback to image or default
+      quantity: 1,
+    };
+
     setCart((prevCart) => {
       const existingItem = prevCart.find((item) => item.id === book.id);
       if (existingItem) {
@@ -39,48 +53,58 @@ export function CartProvider({ children }) {
           item.id === book.id ? { ...item, quantity: item.quantity + 1 } : item
         );
       }
-      return [...prevCart, { ...book, quantity: 1 }];
+      return [...prevCart, bookWithImage];
     });
     setCartOpen(true);
-  };
+  }, []);
 
-  const removeFromCart = (bookId) => {
+  const removeFromCart = useCallback((bookId) => {
     setCart((prevCart) => prevCart.filter((item) => item.id !== bookId));
-  };
+  }, []);
 
-  const updateQuantity = (bookId, newQuantity) => {
+  const updateQuantity = useCallback((bookId, newQuantity) => {
     if (newQuantity < 1) return;
     setCart((prevCart) =>
       prevCart.map((item) =>
         item.id === bookId ? { ...item, quantity: newQuantity } : item
       )
     );
-  };
+  }, []);
 
-  const clearCart = () => {
+  const clearCart = useCallback(() => {
     setCart([]);
-  };
+  }, []);
 
-  const getCartTotal = () => {
+  const getCartTotal = useCallback(() => {
     return cart.reduce((total, item) => total + item.price * item.quantity, 0);
-  };
+  }, [cart]);
+
+  // Memoize the context value to prevent unnecessary re-renders
+  const contextValue = useMemo(
+    () => ({
+      cart,
+      cartOpen,
+      setCartOpen,
+      addToCart,
+      removeFromCart,
+      updateQuantity,
+      clearCart,
+      getCartTotal,
+      setCart,
+    }),
+    [
+      cart,
+      cartOpen,
+      addToCart,
+      removeFromCart,
+      updateQuantity,
+      clearCart,
+      getCartTotal,
+    ]
+  );
 
   return (
-    <CartContext.Provider
-      value={{
-        cart,
-        cartOpen,
-        setCartOpen,
-        addToCart,
-        removeFromCart,
-        updateQuantity,
-        clearCart,
-        getCartTotal,
-        setCart,
-      }}
-    >
-      {children}
-    </CartContext.Provider>
+    <CartContext.Provider value={contextValue}>{children}</CartContext.Provider>
   );
 }
 

@@ -163,7 +163,7 @@ Get enrollment records
 
 **Query Parameters:**
 
-- `studentId`: Filter by student (for teachers/admins)
+- `studentId`: Filter by student (for teachers)
 - `courseId`: Filter by course
 - `status`: Filter by status (ENROLLED, DROPPED, COMPLETED)
 
@@ -275,10 +275,10 @@ Authorization: Bearer <jwt_token>
 
 The database is seeded with the following test accounts:
 
-### Admin
+### Teacher Admin
 
-- Email: `admin@institute.com`
-- Password: `admin123`
+- Email: `teacher@institute.com`
+- Password: `password123`
 
 ### Teachers
 

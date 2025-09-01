@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { requireTeacherAdmin } from "@/lib/auth";
 
 export async function POST(request) {
   try {
@@ -10,7 +11,7 @@ export async function POST(request) {
     // Validate required fields
     if (!firstName || !lastName || !email || !phone || !course) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { ok: false, message: "Missing required fields" },
         { status: 400 }
       );
     }
@@ -30,13 +31,14 @@ export async function POST(request) {
     });
 
     return NextResponse.json({
+      ok: true,
       message: "Admission application submitted successfully",
-      admission,
+      data: { admission },
     });
   } catch (error) {
     console.error("Admission error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { ok: false, message: "Internal server error" },
       { status: 500 }
     );
   }
@@ -44,6 +46,9 @@ export async function POST(request) {
 
 export async function GET(request) {
   try {
+    // Check authentication and authorization
+    const user = requireTeacherAdmin(request);
+
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
     const page = parseInt(searchParams.get("page")) || 1;
@@ -66,18 +71,33 @@ export async function GET(request) {
     ]);
 
     return NextResponse.json({
-      admissions,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit),
+      ok: true,
+      message: "Admissions retrieved successfully",
+      data: {
+        admissions,
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit),
+        },
       },
     });
   } catch (error) {
     console.error("Get admissions error:", error);
+
+    if (
+      error.message.includes("Authentication required") ||
+      error.message.includes("Teacher or Admin access required")
+    ) {
+      return NextResponse.json(
+        { ok: false, message: "Unauthorized access" },
+        { status: 401 }
+      );
+    }
+
     return NextResponse.json(
-      { error: "Internal server error" },
+      { ok: false, message: "Internal server error" },
       { status: 500 }
     );
   }
