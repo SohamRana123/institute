@@ -1,49 +1,36 @@
 "use client";
 
-import { useState } from "react";
-import { useSession } from "next-auth/react";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import TeacherLayout from "@/components/TeacherLayout";
 
 export default function PerformanceUploadPage() {
-  const { data: session, status } = useSession();
+  const { user, loading: authLoading, isAuthenticated } = useAuth();
   const router = useRouter();
   const [file, setFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadResult, setUploadResult] = useState(null);
   const [error, setError] = useState("");
 
-  // Redirect if not logged in or not a teacher
-  if (status === "loading") {
+  // Redirect if not authenticated or not a teacher/admin
+  useEffect(() => {
+    if (!authLoading && (!user || (user.role !== "TEACHER" && user.role !== "ADMIN"))) {
+      router.push("/teacher-login");
+    }
+  }, [user, authLoading, router]);
+  
+  if (authLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        Loading...
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
       </div>
     );
   }
-
-  if (
-    status === "unauthenticated" ||
-    !session?.user?.role?.includes("TEACHER")
-  ) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4">
-        <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
-          <h1 className="text-2xl font-bold text-red-600 mb-4">
-            Access Denied
-          </h1>
-          <p className="text-gray-700 mb-6">
-            You must be logged in as a teacher to access this page.
-          </p>
-          <Link
-            href="/login"
-            className="block w-full text-center bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded transition duration-300"
-          >
-            Go to Login
-          </Link>
-        </div>
-      </div>
-    );
+  
+  if (!user || (user.role !== "TEACHER" && user.role !== "ADMIN")) {
+    return null; // Will be redirected by the useEffect
   }
 
   const handleFileChange = (e) => {
@@ -93,8 +80,10 @@ export default function PerformanceUploadPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-4xl mx-auto">
+    <TeacherLayout>
+      <div className="p-6 bg-gray-50 min-h-screen">
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-800 mb-6">
           Upload Student Performance Data
         </h1>
@@ -275,7 +264,9 @@ export default function PerformanceUploadPage() {
             </div>
           </div>
         </div>
+          </div>
+        </div>
       </div>
-    </div>
+    </TeacherLayout>
   );
 }

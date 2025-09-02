@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import TeacherLayout from "@/components/TeacherLayout";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { fetchApi } from "@/lib/api";
 
 export default function TeacherCurriculum() {
