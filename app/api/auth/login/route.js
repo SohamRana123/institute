@@ -68,24 +68,38 @@ export async function POST(request) {
     // Remove password from response
     const { password: _, ...userWithoutPassword } = user;
 
-    // Create response with httpOnly cookie only (no token in body)
+    // Create response with httpOnly cookie only (include token in body for testing)
     const response = NextResponse.json({
       ok: true,
       message: "Login successful",
       data: {
         user: userWithoutPassword,
-        // Token is now only sent as httpOnly cookie, not in response body
+        // Include token in response body for testing purposes
+        token: token
       },
     });
 
-    // Set httpOnly cookie
+    // Set httpOnly cookie with proper settings
     response.cookies.set("authToken", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: false, // Set to false for localhost testing
+      sameSite: "lax", // Allow cross-site requests for redirects
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: "/", // Ensure cookie is available for all paths
+      // Domain is automatically set to the current domain
+    });
+    
+    // Also set a non-httpOnly cookie for client-side access during testing
+    response.cookies.set("auth_token_client", token, {
+      httpOnly: false,
+      secure: false,
       sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60, // 7 days
+      maxAge: 7 * 24 * 60 * 60,
       path: "/",
     });
+    
+    // Log cookie setting for debugging
+    console.log("Setting auth cookie with token length:", token.length);
 
     console.log("Login successful, cookie set for user:", email);
     return response;

@@ -46,13 +46,21 @@ export default function TeacherDashboard() {
     if (initialized && !authLoading) {
       if (!isAuthenticated) {
         console.log("Not authenticated, redirecting to login");
-        router.push("/teacher-login");
+        // Debug cookies before redirect
+        console.log("Cookies before redirect:", document.cookie);
+        
+        // Use window.location for hard navigation instead of router.push
+        // This ensures a full page reload and fresh authentication state
+        window.location.href = "/teacher-login";
+        return;
       } else {
         console.log("User authenticated, fetching dashboard data");
+        console.log("User data:", user);
+        console.log("Cookies in dashboard:", document.cookie);
         fetchDashboardData();
       }
     }
-  }, [initialized, authLoading, isAuthenticated, router]);
+  }, [initialized, authLoading, isAuthenticated, user]);
 
   // Memoized data fetching functions to prevent unnecessary re-renders
   const fetchDashboardData = useCallback(async () => {
@@ -154,26 +162,28 @@ export default function TeacherDashboard() {
     let isMounted = true;
 
     const checkAuth = async () => {
+      console.log("Dashboard auth check - isAuthenticated:", isAuthenticated, "user:", user);
+      
       if (!isAuthenticated || !user) {
+        console.log("Dashboard - Not authenticated, redirecting to login");
         if (isMounted) {
-          sessionStorage.setItem("lastRedirect", window.location.pathname);
-          router.push("/teacher-login");
+          window.location.href = "/teacher-login";
         }
         return;
       }
 
       const allowedRoles = ["ADMIN", "TEACHER"];
       if (!allowedRoles.includes(user.role)) {
+        console.log("Dashboard - User role not allowed:", user.role);
         if (isMounted) {
-          sessionStorage.setItem("lastRedirect", window.location.pathname);
-          router.push("/teacher-login");
+          window.location.href = "/teacher-login";
         }
         return;
       }
 
-      // Only fetch data if we have a valid token
-      const token = localStorage.getItem("authToken");
-      if (token && isMounted) {
+      console.log("Dashboard - User authenticated and authorized, fetching data");
+      // Fetch dashboard data if authenticated (we're using HttpOnly cookies now)
+      if (isMounted) {
         await fetchDashboardData();
       }
     };
@@ -236,6 +246,19 @@ export default function TeacherDashboard() {
     );
   }
 
+  // Show loading state while authentication is being checked
+  if (authLoading || !initialized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-lg text-gray-700">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  // Check if user is authenticated and has the right role
   if (
     !isAuthenticated ||
     (user?.role !== "ADMIN" && user?.role !== "TEACHER")

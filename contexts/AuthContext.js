@@ -25,19 +25,61 @@ export const AuthProvider = ({ children }) => {
 
     const checkAuth = async () => {
       try {
-        const currentUser = await authAPI.getCurrentUser();
-        console.log("AuthContext - currentUser from server:", currentUser);
+        // Only attempt to get current user if we're in a browser environment
+        if (typeof window !== "undefined") {
+          console.log("AuthContext - checking authentication status");
+          
+          // Debug cookies
+          console.log("AuthContext - cookies:", document.cookie);
+          
+          // Get token from client-side cookie if available
+          const getTokenFromCookie = () => {
+            const cookies = document.cookie.split(';');
+            const tokenCookie = cookies.find(c => c.trim().startsWith('auth_token_client='));
+            if (tokenCookie) {
+              return tokenCookie.split('=')[1];
+            }
+            return null;
+          };
+          
+          // Try to get the token from the client-side cookie
+          const token = getTokenFromCookie();
+          
+          // If we have a token, add it to the Authorization header for the API call
+          let headers = {};
+          if (token) {
+            console.log("AuthContext - Found token in client-side cookie, adding to Authorization header");
+            headers.Authorization = `Bearer ${token}`;
+          }
+          
+          const currentUser = await authAPI.getCurrentUser(headers);
+          console.log("AuthContext - currentUser from server:", currentUser);
 
-        if (currentUser && currentUser.id && currentUser.role) {
-          setUser(currentUser);
-          console.log("AuthContext - user state set to:", currentUser);
-        } else {
-          console.log("AuthContext - no valid current user found");
-          setUser(null);
+          if (currentUser && currentUser.id && currentUser.role) {
+            setUser(currentUser);
+            console.log("AuthContext - user state set to:", currentUser);
+            
+            // Store minimal auth info in localStorage for cross-tab sync
+            localStorage.setItem('auth_user_id', currentUser.id);
+            localStorage.setItem('auth_user_role', currentUser.role);
+          } else {
+            console.log("AuthContext - no valid current user found");
+            setUser(null);
+            
+            // Clear localStorage auth info
+            localStorage.removeItem('auth_user_id');
+            localStorage.removeItem('auth_user_role');
+          }
         }
       } catch (error) {
         console.error("AuthContext - error checking authentication:", error);
         setUser(null);
+        
+        // Clear localStorage auth info on error
+        if (typeof window !== "undefined") {
+          localStorage.removeItem('auth_user_id');
+          localStorage.removeItem('auth_user_role');
+        }
       } finally {
         setLoading(false);
         setInitialized(true);
@@ -45,6 +87,27 @@ export const AuthProvider = ({ children }) => {
     };
 
     checkAuth();
+    
+    // Add event listener for storage changes to sync auth state across tabs
+    const handleStorageChange = (event) => {
+      if (event.key === 'auth_state_change') {
+        console.log('Auth state changed in another tab, refreshing state');
+        // Force re-initialization
+        setInitialized(false);
+        // Immediately check auth again
+        checkAuth();
+      }
+    };
+    
+    if (typeof window !== "undefined") {
+      window.addEventListener('storage', handleStorageChange);
+    }
+    
+    return () => {
+      if (typeof window !== "undefined") {
+        window.removeEventListener('storage', handleStorageChange);
+      }
+    };
   }, [initialized]);
 
   // Login function for teachers/admins
@@ -60,16 +123,33 @@ export const AuthProvider = ({ children }) => {
         setUser(response.data.user);
         setInitialized(true);
         
-        // Redirect to teacher dashboard after successful login
-        if (typeof window !== "undefined" && (response.data.user.role === "TEACHER" || response.data.user.role === "ADMIN")) {
-          console.log("Redirecting to teacher dashboard");
-          window.location.href = "/teacher-dashboard";
+        // Store minimal auth info in localStorage for cross-tab sync
+        if (typeof window !== "undefined") {
+          localStorage.setItem('auth_user_id', response.data.user.id);
+          localStorage.setItem('auth_user_role', response.data.user.role);
+          localStorage.setItem('auth_state_change', Date.now().toString());
         }
         
-        return { success: true, data: response.data };
+        // Debug cookies after login
+        if (typeof document !== 'undefined') {
+          console.log("Document cookies after login in AuthContext:", document.cookie);
+        }
+        
+        // Wait a moment to ensure state is updated
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Return success first, let the component handle redirection
+        return { success: true, data: response.data, redirectTo: "/teacher-dashboard" };
       } else {
         console.error("Login error:", response.error);
         setUser(null);
+        
+        // Clear localStorage auth info
+        if (typeof window !== "undefined") {
+          localStorage.removeItem('auth_user_id');
+          localStorage.removeItem('auth_user_role');
+        }
+        
         return { success: false, error: response.error };
       }
     } catch (error) {
@@ -116,15 +196,33 @@ export const AuthProvider = ({ children }) => {
     try {
       await authAPI.logout();
       setUser(null);
-      // Redirect to login page
+      setInitialized(false); // Reset initialized state to force re-check on next mount
+      
+      // Clear localStorage auth info
       if (typeof window !== "undefined") {
+        localStorage.removeItem('auth_user_id');
+        localStorage.removeItem('auth_user_role');
+        localStorage.setItem('auth_state_change', Date.now().toString());
+        
+        // Debug cookies after logout
+        console.log("Document cookies after logout:", document.cookie);
+        
+        // Use hard navigation to ensure cookies are cleared properly
         window.location.href = "/teacher-login";
       }
     } catch (error) {
       console.error("Logout error:", error);
       // Still clear user state even if logout fails
       setUser(null);
+      setInitialized(false); // Reset initialized state to force re-check on next mount
+      
+      // Clear localStorage auth info even on error
       if (typeof window !== "undefined") {
+        localStorage.removeItem('auth_user_id');
+        localStorage.removeItem('auth_user_role');
+        localStorage.setItem('auth_state_change', Date.now().toString());
+        
+        // Use hard navigation to ensure cookies are cleared properly
         window.location.href = "/teacher-login";
       }
     }

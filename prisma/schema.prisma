@@ -256,8 +256,8 @@ model library_files {
 
 enum UserRole {
   STUDENT
-  TEACHER
   ADMIN
+  TEACHER
 }
 
 enum StudentStatus {

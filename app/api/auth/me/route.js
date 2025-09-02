@@ -7,7 +7,20 @@ export async function GET(request) {
     // Try to get token from cookie first
     let token = request.cookies.get("authToken")?.value;
 
-    // If no token in cookie, check Authorization header
+    // If no token in authToken cookie, check token cookie
+    if (!token) {
+      token = request.cookies.get("token")?.value;
+    }
+    
+    // Also check for auth_token_client cookie
+    if (!token) {
+      token = request.cookies.get("auth_token_client")?.value;
+      if (token) {
+        console.log('Using token from auth_token_client cookie');
+      }
+    }
+
+    // If no token in cookies, check Authorization header
     if (!token) {
       const authHeader = request.headers.get('authorization');
       if (authHeader && authHeader.startsWith('Bearer ')) {
