@@ -289,9 +289,10 @@ export default function TeacherRegister() {
             </h3>
             <ul className="text-sm text-blue-700 space-y-1">
               <li>• Your request will be reviewed by our admin team</li>
-              <li>• You'll receive an email notification once reviewed</li>
+              <li>• You&apos;ll receive an email notification once reviewed</li>
               <li>
-                • If approved, you'll get login credentials to access the system
+                • If approved, you&apos;ll get login credentials to access the
+                system
               </li>
               <li>• The approval process typically takes 1-2 business days</li>
             </ul>

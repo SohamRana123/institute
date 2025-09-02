@@ -60,7 +60,7 @@ export default function TeacherDashboard() {
         fetchDashboardData();
       }
     }
-  }, [initialized, authLoading, isAuthenticated, user]);
+  }, [initialized, authLoading, isAuthenticated, user, fetchDashboardData]);
 
   // Memoized data fetching functions to prevent unnecessary re-renders
   const fetchDashboardData = useCallback(async () => {
